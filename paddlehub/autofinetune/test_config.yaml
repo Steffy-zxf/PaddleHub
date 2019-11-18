@@ -1,0 +1,27 @@
+experimentName: test_experiment
+trialConcurrency: 2
+# 可选项: local, remote, cluster(目前只支持local)
+trainingServicePlatform: local
+searchSpacePath: test_search_space.json
+# 可选项: true, false, 默认值: false
+multiThread: true
+output_dir: test_output
+tuner:
+  # 可选项: Random, PBT
+  TunerName: random
+  classArgs:
+    # 可选项: maximize, minimize, 默认值: maximize (将指标最大化)
+    optimize_mode: maximize
+evaluator:
+  #可选项: Medianstop
+  EvaluatorName: medianstop
+  classArgs:
+    #可选项: maximize, minimize, 默认值: maximize （指标小于期望值终止trial）
+    optimize_mode: maximize
+trial:
+  command: python img_cls.py
+  codeDir: /ssd2/home/zhangxuefei/program-paddle/PaddleHub/demo/autofinetune/
+  gpuNum: 2
+
+localConfig:
+  gpuIndices: 4,5,6,7
