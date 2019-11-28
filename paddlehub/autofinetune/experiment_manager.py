@@ -18,8 +18,12 @@ from __future__ import print_function
 
 import json
 import importlib
+from multiprocessing.dummy import Pool as ThreadPool
+from queue import Queue, Empty
+import threading
 
 from .constants import ModuleName, ClassName, ClassArgs
+from paddlehub.common.logger import logger
 
 
 def augment_classargs(input_class_args, classname):
@@ -48,18 +52,32 @@ def create_builtin_class_instance(classname, class_args={}, is_advisor=False):
     return instance
 
 
+_multi_thread = False
+
+
+def enable_multi_thread():
+    global _multi_thread
+    _multi_thread = True
+
+
 class ExperimentManager(object):
     def __init__(self, config):
         self.config = config
 
         self._experiment_name = self.config.get("experimentName", "default")
         self._platform = self.config.get("trainingServicePlatform", None)
-        assert self._platform != None
+        if self._platform == None:
+            logger.error("The training plarform hasn't been set, exiting...")
+            exit()
+        elif self._platform not in ['local', 'remote', ' cluster']:
+            logger.error("The training plarform %s is not supported, exiting..."
+                         % self._platform)
+            exit()
         _search_space_path = self.config.get("searchSpacePath", None)
-        assert _search_space_path != None
+        if _search_space_path == None:
+            logger.error("The search space is None, must be pre-defined.")
         with open(_search_space_path, "r") as f:
             self.search_space = json.load(f)
-
         self.tuner = None
         self.evaluator = None
         assert self.config.get("tuner", None) != None
@@ -73,3 +91,28 @@ class ExperimentManager(object):
             if _evaluator_name in ModuleName:
                 self.evaluator = create_builtin_class_instance(
                     _evaluator_name, _evaluator_args)
+
+        if self.config.get("multiThread", False):
+            enable_multi_thread()
+
+        if enable_multi_thread():
+            self.pool = ThreadPool()
+            self.thread_results = []
+        else:
+            self.stopping = False
+            self.default_command_queue = Queue()
+            self.evaluator_command_queue = Queue()
+            self.default_worker = threading.Thread(
+                target=self.command_queue_worker,
+                args=(self.default_command_queue, ))
+            self.evaluator_worker = threading.Thread(
+                target=self.command_queue_worker,
+                args=(self.evaluator_command_queue, ))
+            self.default_worker.start()
+            self.evaluator_worker.start()
+            self.worker_exceptions = []
+
+    def run(self):
+        """
+        Run the tuner
+        """
