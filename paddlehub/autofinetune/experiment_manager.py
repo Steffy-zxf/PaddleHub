@@ -313,9 +313,6 @@ class ExperimentManager(object):
         if len(params_list) < len(ids):
             send(CommandType.NoMoreTrialJobs, _pack_parameter(ids[0], ''))
 
-    def handle_update_search_space(self, data):
-        self.tuner.update_search_space(data)
-
     def handle_report_metric_data(self, data):
         """
         data: a dict received from nni_manager, which contains:
@@ -399,7 +396,7 @@ class ExperimentManager(object):
             result = self.evaluator.evaluate_trial(trial_job_id,
                                                    ordered_history)
         except Exception as e:
-            logger.error("Evaluator error")
+            logger.error("Evaluator error [{}]".format(e))
 
         if isinstance(result, bool):
             result = EvaluatorResult.Good if result else EvaluatorResult.Bad
