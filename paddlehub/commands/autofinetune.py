@@ -89,8 +89,17 @@ class AutoFineTuneCommand(BaseCommand):
             with io.open(self.args.config, 'r', encoding='utf8') as f:
                 self.config = yaml.safe_load(f)
                 self.exp_manager = ExperimentManager(self.config)
-
                 print(self.config)
+        try:
+            self.exp_manager.run()
+            self.exp_manager.tuner._on_exit()
+            if self.exp_manager.evaluator is not None:
+                self.exp_manager.evaluator._on_exit()
+        except Exception as e:
+            logger.error(e)
+            self.exp_manager.tuner._on_error()
+            if self.exp_manager.evaluator is not None:
+                self.exp_manager.evaluator._on_error()
 
         return True
 
