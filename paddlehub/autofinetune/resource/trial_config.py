@@ -13,6 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+trial_job_status = [
+    'UNKNOWN', 'WAITING', 'RUNNING', 'SUCCEEDED', 'FAILED', 'USER_CANCELED',
+    'SYS_CANCELED', 'EARLY_STOPPED'
+]
+
 
 class TrialConfig(object):
     """
@@ -39,7 +44,9 @@ class TrialJobDetail(object):
                  working_dir,
                  start_time=None,
                  end_time=None,
-                 is_early_stopped=False):
+                 is_early_stopped=False,
+                 pid=None,
+                 gpu_indices=[]):
         self.trial_id = trial_id
         self.trial_status = trial_status
         self.submit_time = submit_time
@@ -47,3 +54,5 @@ class TrialJobDetail(object):
         self.end_time = end_time
         self.working_dir = working_dir
         self.is_early_stopped = is_early_stopped
+        self.pid = pid
+        self.gpu_indices = gpu_indices

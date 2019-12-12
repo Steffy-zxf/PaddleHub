@@ -16,6 +16,7 @@ import random
 import string
 import time
 import os
+import signal
 
 from trial_config import TrialConfig, TrialJobDetail
 from training_service import BasicTrainingService
@@ -68,12 +69,37 @@ class LocalTrainingService(BasicTrainingService):
         self.trial_detail_dict[trial_job_id] = trial_job_detail
         logger.info("submit trial job {}".format(trial_job_id))
 
-    def submit_trial_job(self, ):
+    def cancel_trial_job(self, trial_job_id, is_early_stopped):
+        trial_job_detail = self.trial_detail_dict.get(trial_job_id, None)
+        if not trial_job_detail:
+            logger.error("Trial job not found!")
+            return None
+        else:
+            if not trial_job_detail.pid:
+                self.set_trial_job_status(trial_job_detail, "USER_CANCELED")
+            else:
+                os.kill(trial_job_detail.pid, signal.SIGTERM)
+                if is_early_stopped:
+                    self.set_trial_job_status(trial_job_detail, "EARLY_STOPPED")
+                else:
+                    self.set_trial_job_status(trial_job_detail, "SYS_CANCELED")
 
-        raise NotImplementedError
+    def set_trial_job_status(self, trial_job_detail, new_status):
+        if trial_job_detail.trial_status != new_status:
+            trial_job_detail.trial_status = new_status
 
-    def cancel_trial_job(self, trail_job_id, is_early_stopped):
-        raise NotImplementedError
+    def run(self):
+        logger.info("Run local machine training service!")
+        self.run_job_loop()
+        logger.info("Local machine training service exit.")
 
-    def run():
-        raise NotImplementedError
+    def run_job_loop(self):
+        while not self.stopping:
+            while not self.stopping and len(self.job_queue) != 0:
+                trial_job_id = self.job_queue[0]
+                trial_job_detail = self.trial_detail_dict.get(
+                    trial_job_id, None)
+                if not trial_job_detail:
+                    logger.error("Trial job not found!")
+                else:
+                    pass

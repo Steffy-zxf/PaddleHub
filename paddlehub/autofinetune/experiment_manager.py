@@ -23,12 +23,12 @@ from multiprocessing.dummy import Pool as ThreadPool
 from queue import Queue, Empty
 import threading
 
-from constants import ModuleName, ClassName, ClassArgs
-from evaluator import EvaluatorResult
-from env_vars import dispatcher_env_vars
+from .constants import ModuleName, ClassName, ClassArgs
+from .evaluator import EvaluatorResult
+from .env_vars import dispatcher_env_vars
 from paddlehub.common.logger import logger
-from protocol import CommandType, send, receive
-from autodl_utils import MetricType
+from .protocol import CommandType, send, receive
+from .autodl_utils import MetricType
 
 
 def augment_classargs(input_class_args, classname):
@@ -180,9 +180,12 @@ class ExperimentManager(object):
         Run the tuner
         """
         logger.info("Start Run Tuner %s " % self.config["tuner"]["TunerName"])
+        print("Start Run Tuner %s " % self.config["tuner"]["TunerName"])
 
         while True:
             command, data = receive()
+            print(123)
+            print(command, data)
             if data:
                 data = json.loads(data)
 

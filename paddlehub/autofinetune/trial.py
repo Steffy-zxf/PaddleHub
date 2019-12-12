@@ -12,7 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import json_tricks
+import json
 
 from env_vars import trial_env_vars
 from . import platform
@@ -69,7 +69,7 @@ def report_intermediate_result(metric):
     """
     global _intermediate_seq
     assert _params is not None, 'nni.get_next_parameter() needs to be called before report_intermediate_result'
-    metric = json_tricks.dumps({
+    metric = json.dumps({
         'parameter_id': _params['parameter_id'],
         'trial_job_id': trial_env_vars.NNI_TRIAL_JOB_ID,
         'type': 'PERIODICAL',
@@ -84,8 +84,8 @@ def report_final_result(metric):
     """Reports final result to tuner.
     metric: serializable object.
     """
-    assert _params is not None, 'nni.get_next_parameter() needs to be called before report_final_result'
-    metric = json_tricks.dumps({
+    assert _params is not None, 'hub.get_next_parameter() needs to be called before report_final_result'
+    metric = json.dumps({
         'parameter_id': _params['parameter_id'],
         'trial_job_id': trial_env_vars.NNI_TRIAL_JOB_ID,
         'type': 'FINAL',
