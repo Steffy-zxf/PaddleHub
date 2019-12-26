@@ -9,9 +9,9 @@ import numpy as np
 
 # yapf: disable
 parser = argparse.ArgumentParser(__doc__)
-parser.add_argument("--num_epoch",          type=int,               default=1,                          help="Number of epoches for fine-tuning.")
+parser.add_argument("--num_epoch",          type=int,               default=5,                          help="Number of epoches for fine-tuning.")
 parser.add_argument("--use_gpu",            type=ast.literal_eval,  default=True,                      help="Whether use GPU for fine-tuning.")
-parser.add_argument("--checkpoint_dir",     type=str,               default="paddlehub_finetune_ckpt",  help="Path to save log data.")
+parser.add_argument("--checkpoint_dir",     type=str,               default="paddlehub_finetune_ckpt2",  help="Path to save log data.")
 parser.add_argument("--batch_size",         type=int,               default=16,                         help="Total examples' number in batch for training.")
 parser.add_argument("--module",             type=str,               default="resnet50",                 help="Module used as feature extractor.")
 parser.add_argument("--dataset",            type=str,               default="flowers",                  help="Dataset to finetune.")
@@ -51,7 +51,8 @@ def finetune(args):
         image_height=module.get_expected_image_height(),
         images_mean=module.get_pretrained_images_mean(),
         images_std=module.get_pretrained_images_std(),
-        dataset=dataset)
+        dataset=dataset,
+        rand_augmentation=True)
 
     feature_map = output_dict["feature_map"]
 
@@ -64,7 +65,6 @@ def finetune(args):
         use_cuda=args.use_gpu,
         num_epoch=args.num_epoch,
         batch_size=args.batch_size,
-        enable_memory_optim=False,
         checkpoint_dir=args.checkpoint_dir,
         strategy=hub.finetune.strategy.DefaultFinetuneStrategy())
 

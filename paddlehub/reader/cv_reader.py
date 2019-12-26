@@ -21,7 +21,7 @@ import paddle
 import numpy as np
 from PIL import Image
 
-import paddlehub.io.augmentation as image_augmentation
+from paddlehub.io.augmentation import image_resize, RandAugment
 from .base_reader import BaseReader
 
 channel_order_dict = {
@@ -42,13 +42,20 @@ class ImageClassificationReader(BaseReader):
                  channel_order="RGB",
                  images_mean=None,
                  images_std=None,
-                 data_augmentation=False,
+                 rand_augmentation=False,
+                 trans_number=7,
+                 proportion=9,
                  random_seed=None):
         super(ImageClassificationReader, self).__init__(dataset, random_seed)
         self.image_width = image_width
         self.image_height = image_height
         self.channel_order = channel_order
-        self.data_augmentation = data_augmentation
+
+        self.rand_augmentation = rand_augmentation
+        if self.rand_augmentation:
+            self.trans_number = trans_number if trans_number >= 0 and trans_number <= 14 else 7
+            self.proportion = proportion if proportion >= 0 and proportion <= 9 else 9
+
         self.images_std = images_std
         self.images_mean = images_mean
 
@@ -110,14 +117,15 @@ class ImageClassificationReader(BaseReader):
 
         def preprocess(image_path):
             image = Image.open(image_path)
-            image = image_augmentation.image_resize(image, self.image_width,
-                                                    self.image_height)
-            if self.data_augmentation:
-                image = image_augmentation.image_random_process(
-                    image, enable_resize=False, enable_crop=False)
+            image = image_resize(image, self.image_width, self.image_height)
 
             # only support RGB
             image = image.convert('RGB')
+
+            if self.rand_augmentation:
+                rand_aug = RandAugment(
+                    trans_number=self.trans_number, proportion=self.proportion)
+                image = rand_aug(image)
 
             # HWC to CHW
             image = np.array(image).astype('float32')
