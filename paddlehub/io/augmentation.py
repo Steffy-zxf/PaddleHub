@@ -115,16 +115,12 @@ class RandAugment():
         }
 
     def __call__(self, image):
-        #print(np.array(image).shape)
-        #         for num in range(self.trans_number):
-        #             index = random.choice(range(len(self.transforms)-1))
-        #             op_name = self.transforms[index]
-        #             #print(op_name)
-        #             op_name = "color"
-        #             magnitude = self.trans_ranges[op_name][self.proportion]
-        #             image = self.func[op_name](image, magnitude)
-        #             #print(np.array(image).shape)
-        op_name = "sharpness"
-        magnitude = self.trans_ranges[op_name][self.proportion]
-        image = self.func[op_name](image, magnitude)
+        for num in range(self.trans_number):
+            index = random.choice(range(len(self.transforms) - 1))
+            op_name = self.transforms[index]
+            op_name = "color"
+            magnitude = self.trans_ranges[op_name][self.proportion]
+            image = self.func[op_name](image, magnitude)
+            magnitude = self.trans_ranges[op_name][self.proportion]
+            image = self.func[op_name](image, magnitude)
         return image
